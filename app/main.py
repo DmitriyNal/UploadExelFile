@@ -6,9 +6,9 @@ import warnings
 from fastapi import FastAPI, UploadFile, Request, BackgroundTasks, HTTPException
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.templating import Jinja2Templates
-from utils import processing_flags, process_file
+from app.utils import processing_flags, process_file
 
-warnings.filterwarnings('ignore', category=RuntimeWarning)
+# warnings.filterwarnings('ignore', category=RuntimeWarning)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 app = FastAPI(swagger_ui_parameters={"tryItOutEnabled": True}, debug=True)

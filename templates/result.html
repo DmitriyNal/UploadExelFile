@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Результат обработки</title>
+</head>
+<body>
+<h1>Обработка файла</h1>
+{% if message %}
+<p>{{ message }}</p>
+{% endif %}
+{% if check_url %}
+<a href="{{ check_url }}">Проверить статус</a><br>
+{% endif %}
+{% if download_url %}
+<a href="{{ download_url }}">Скачать результаты</a>
+{% endif %}
+</body>
+</html>
