@@ -2,7 +2,6 @@ import logging
 import os
 import warnings
 
-
 from fastapi import FastAPI, UploadFile, Request, BackgroundTasks, HTTPException
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.templating import Jinja2Templates
@@ -13,7 +12,6 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 app = FastAPI(swagger_ui_parameters={"tryItOutEnabled": True}, debug=True)
 templates = Jinja2Templates(directory="templates")
-
 
 logging.info("Пуск")
 
@@ -37,6 +35,9 @@ async def upload_file(request: Request, file: UploadFile, background_tasks: Back
     logger.info('Загрузка файла')
     upload_dir = "uploads"
     os.makedirs(upload_dir, exist_ok=True)
+    # file_path = os.path.join(upload_dir, file.filename)
+    # Стандартизируем имя файла
+    base_filename = os.path.splitext(file.filename)[0]
     file_path = os.path.join(upload_dir, file.filename)
 
     # Save the uploaded file
@@ -77,5 +78,3 @@ async def download_result(filename: str):
     else:
         logger.error(f"Файл {filename} не найден")
         raise HTTPException(status_code=404, detail="File not found")
-
-

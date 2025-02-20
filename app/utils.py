@@ -89,5 +89,5 @@ def process_file(file_path, prompt, master_prompt):
         logger.info(f'Файл Excel сохранен: {filename}')
 
     # Обновление статуса после завершения обработки
-    processing_flags[file_path] = "completed"
+    processing_flags[file_path] = "Файл готов -Можно скачать "
     logger.info(f"Статус обработки обновлен для файла: {file_path}")
