@@ -1,6 +1,7 @@
 import logging
 import os
 import warnings
+from urllib.parse import quote, unquote
 
 from fastapi import FastAPI, UploadFile, Request, BackgroundTasks, HTTPException
 from fastapi.responses import HTMLResponse, FileResponse
@@ -22,12 +23,20 @@ async def home(request: Request):
     return templates.TemplateResponse("upload.html", {"request": request})
 
 
-@app.get("/check-status/{file_name}")
-async def check_status(file_name: str):
+@app.get("/check-status/{file_name}", response_class=HTMLResponse)
+async def check_status(file_name: str, request: Request):
     file_path = os.path.join("uploads", file_name)
     status = processing_flags.get(file_path, "not_started")
     logger.info(f"Проверка статуса файла {file_name}: {status}")
-    return {"status": status}
+
+    # Формируем URL для обновления статуса
+    check_url = f"/check-status/{file_name}"
+
+    return templates.TemplateResponse("status.html", {
+        "request": request,
+        "status": status,
+        "check_url": check_url
+    })
 
 
 @app.post("/upload-file/")
@@ -39,6 +48,7 @@ async def upload_file(request: Request, file: UploadFile, background_tasks: Back
     # Стандартизируем имя файла
     base_filename = os.path.splitext(file.filename)[0]
     file_path = os.path.join(upload_dir, file.filename)
+    processed_file_path = os.path.join(upload_dir, f"{base_filename}_results.xlsx")
 
     # Save the uploaded file
     with open(file_path, "wb") as f:
@@ -57,24 +67,29 @@ async def upload_file(request: Request, file: UploadFile, background_tasks: Back
     '''
 
     # Add the background task for processing the file
-    background_tasks.add_task(process_file, file_path, prompt, master_prompt)
+    background_tasks.add_task(process_file, file_path, prompt, master_prompt, processed_file_path)
+
+    # Кодируем имя файла для URL
+    encoded_filename = quote(f"{base_filename}_results.xlsx")
 
     return templates.TemplateResponse("result.html", {
         "request": request,
         "message": "Файл обрабатывается в фоновом режиме. Пожалуйста, проверьте статус позже.",
-        "check_url": f"/check-status/{file.filename}",
-        "download_url": f"/download/{os.path.splitext(file.filename)[0]}_results.xlsx"
+        "check_url": f"/check-status/{quote(file.filename)}",
+        "download_url": f"/download/{encoded_filename}"
     })
 
 
 @app.get("/download/{filename}")
 async def download_result(filename: str):
-    file_path = os.path.join("uploads", f"{os.path.splitext(filename)[0]}_results.xlsx")
+    # Декодируем имя файла из URL
+    decoded_filename = unquote(filename)
+    file_path = os.path.join("uploads", decoded_filename)
     if os.path.exists(file_path):
         logger.info(f"Скачан результат обработки файла {filename}")
         return FileResponse(path=file_path,
                             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                            filename=f"{os.path.splitext(filename)[0]}_results.xlsx")
+                            filename=decoded_filename)
     else:
         logger.error(f"Файл {filename} не найден")
         raise HTTPException(status_code=404, detail="File not found")

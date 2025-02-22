@@ -58,7 +58,7 @@ def process_row(row, prompt):
     return get_gpt_feedback(str(row), prompt)
 
 
-def process_file(file_path, prompt, master_prompt):
+def process_file(file_path, prompt, master_prompt, processed_file_path):
     logger.info(f"Начало обработки файла: {file_path}")
     df = pd.read_excel(file_path, index_col=0)
     df_full = df.copy()
